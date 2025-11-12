@@ -45,10 +45,21 @@ async function run() {
 
     // get latest bills
 
-    app.get("/bills/latest", async(req, res)=>{
-        const result = await billsCollection.find().sort({date: -1}).limit(6).toArray();
-        res.send(result)
-    })
+    app.get("/bills/latest", async (req, res) => {
+      const result = await billsCollection
+        .find()
+        .sort({ date: -1 })
+        .limit(6)
+        .toArray();
+      res.send(result);
+    });
+
+    // post my bills
+    app.post("/my-bills", async (req, res) => {
+      const newData = req.body;
+      const result = await myBillsCollection.insertOne(newData);
+      res.send(result);
+    });
 
     // get a bill by id
     app.get("/bills/:id", async (req, res) => {
@@ -58,10 +69,17 @@ async function run() {
       res.send(result);
     });
 
-    // post my bills
-    app.post("/my-bills", async(req, res)=>{
-        const newData = req.body;
-        const result = await myBillsCollection.insertOne(newData);
+    // get my bills
+    app.get("/my-bills", async (req, res) => {
+      const result = await myBillsCollection.find().toArray();
+      res.send(result);
+    });
+
+    // delete my bill by id
+    app.delete("/my-bills/:id", async(req, res)=>{3
+        const {id} = req.params
+        const query = {billsId: id}
+        const result = await myBillsCollection.deleteOne(query)
         res.send(result)
     })
 
