@@ -27,6 +27,7 @@ async function run() {
     await client.connect();
     const database = client.db("pay-connect-db");
     const billsCollection = database.collection("bills");
+    const myBillsCollection = database.collection("my-bills");
 
     // get all bills
     app.get("/bills", async (req, res) => {
@@ -56,6 +57,13 @@ async function run() {
       const result = await billsCollection.findOne(query);
       res.send(result);
     });
+
+    // post my bills
+    app.post("/my-bills", async(req, res)=>{
+        const newData = req.body;
+        const result = await myBillsCollection.insertOne(newData);
+        res.send(result)
+    })
 
     await client.db("admin").command({ ping: 1 });
     console.log(
