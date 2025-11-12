@@ -30,21 +30,29 @@ async function run() {
 
     // get all bills
     app.get("/bills", async (req, res) => {
-      const result = await billsCollection.find().toArray();
-      res.send(result);
+      const { sort } = req.query;
+      let query = {};
+      if (sort === "All") {
+        const result = await billsCollection.find().toArray();
+        res.send(result);
+        return;
+      } else {
+        const result = await billsCollection.find({ category: sort }).toArray();
+        res.send(result);
+      }
     });
 
     // get a bill by id
     app.get("/bills/:id", async (req, res) => {
-      const id = req.params.id;
+      const { id } = req.params;
       const query = { _id: new ObjectId(id) };
-      const result = await billsCollection.find(query).toArray();
+      const result = await billsCollection.findOne(query);
       res.send(result);
     });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
-      "-----------------------Pinged your deployment. You successfully connected to MongoDB!-------------------"
+      "Pinged your deployment. You successfully connected to MongoDB!-------------------"
     );
   } finally {
     // await client.close();
