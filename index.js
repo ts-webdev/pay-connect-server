@@ -42,6 +42,13 @@ async function run() {
       }
     });
 
+    // get latest bills
+
+    app.get("/bills/latest", async(req, res)=>{
+        const result = await billsCollection.find().sort({date: -1}).limit(6).toArray();
+        res.send(result)
+    })
+
     // get a bill by id
     app.get("/bills/:id", async (req, res) => {
       const { id } = req.params;
