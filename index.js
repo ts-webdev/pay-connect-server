@@ -54,13 +54,6 @@ async function run() {
       res.send(result);
     });
 
-    // post my bills
-    app.post("/my-bills", async (req, res) => {
-      const newData = req.body;
-      const result = await myBillsCollection.insertOne(newData);
-      res.send(result);
-    });
-
     // get a bill by id
     app.get("/bills/:id", async (req, res) => {
       const { id } = req.params;
@@ -69,19 +62,41 @@ async function run() {
       res.send(result);
     });
 
-    // get my bills
-    app.get("/my-bills", async (req, res) => {
-      const result = await myBillsCollection.find().toArray();
+    // post my-bills
+    app.post("/my-bills", async (req, res) => {
+      const newData = req.body;
+      const result = await myBillsCollection.insertOne(newData);
       res.send(result);
     });
 
-    // delete my bill by id
-    app.delete("/my-bills/:id", async(req, res)=>{3
-        const {id} = req.params
-        const query = {billsId: id}
-        const result = await myBillsCollection.deleteOne(query)
-        res.send(result)
+    // get my-bills
+    app.get("/my-bills", async (req, res) => {
+      const { email } = req.query;
+      const query = { email: email };
+      const result = await myBillsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // update my-bills by id
+    app.put("/my-bills/:id", async(req, res)=>{
+      const newData = req.body
+      const {id} = req.params;
+      const query = {billsId : id}
+      const update = {
+        $set: newData
+      }
+      const result = await myBillsCollection.updateOne(query, update)
+      res.send(result)
     })
+
+    // delete my-bills by id
+    app.delete("/my-bills/:id", async (req, res) => {
+      3;
+      const { id } = req.params;
+      const query = { billsId: id };
+      const result = await myBillsCollection.deleteOne(query);
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
