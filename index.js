@@ -88,6 +88,11 @@ async function run() {
     // post my-bills
     app.post("/my-bills", async (req, res) => {
       const newData = req.body;
+      const existingData = await myBillsCollection.findOne({billsId : newData.billsId})
+
+      if(existingData){
+        return res.send({message: "Already Exist"})
+      }
       const result = await myBillsCollection.insertOne(newData);
       res.send(result);
     });
