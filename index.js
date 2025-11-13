@@ -2,12 +2,35 @@ const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
+const admin = require("firebase-admin");
 const app = express();
 const port = process.env.PORT || 3000;
+
+const serviceAccount = require("./firebase-admin-sdk.json");
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 // middleware
 app.use(cors());
 app.use(express.json());
+const verifyFirebaseToken = async (req, res, next) => {
+  if (!req.headers.authorization) {
+    return res.status(401).send("Unauthorized Access");
+  }
+  const token = req.headers.authorization.split(" ")[1];
+  if (!token) {
+    return res.status(401).send("Unauthorized Access");
+  }
+
+  try {
+    const userInfo = await admin.auth().verifyIdToken(token);
+    req.token_email = userInfo.email
+    next();
+  } catch {
+    return res.status(401).send("Unauthorized Access");
+  }
+};
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.b6ihxc4.mongodb.net/?appName=Cluster0`;
 
@@ -70,24 +93,27 @@ async function run() {
     });
 
     // get my-bills
-    app.get("/my-bills", async (req, res) => {
+    app.get("/my-bills", verifyFirebaseToken, async (req, res) => {
       const { email } = req.query;
+      if(email !== req.token_email){
+        return res.status(403).send("forbidden access")
+      }
       const query = { email: email };
       const result = await myBillsCollection.find(query).toArray();
       res.send(result);
     });
 
     // update my-bills by id
-    app.put("/my-bills/:id", async(req, res)=>{
-      const newData = req.body
-      const {id} = req.params;
-      const query = {billsId : id}
+    app.put("/my-bills/:id", async (req, res) => {
+      const newData = req.body;
+      const { id } = req.params;
+      const query = { billsId: id };
       const update = {
-        $set: newData
-      }
-      const result = await myBillsCollection.updateOne(query, update)
-      res.send(result)
-    })
+        $set: newData,
+      };
+      const result = await myBillsCollection.updateOne(query, update);
+      res.send(result);
+    });
 
     // delete my-bills by id
     app.delete("/my-bills/:id", async (req, res) => {
